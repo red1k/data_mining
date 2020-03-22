@@ -1,0 +1,33 @@
+---
+title: "Classification - Decision Tree"
+author: "Erdenebayar"
+output: html_document
+---
+
+### Decision tree is supervised learning algorithm  
+> * **Regression tree** to predict *quantative* responses  
+> * **Classification tree** to predict *qualitative* responses
+
+### Tree has 3 type of nodes:
+> * **root** has no incoming edges, zero or more outgoing edges  
+> * **internal nodes** has exactly one incoming edges and two or more outgoing edges  
+> * **leaf /terminal/** has one incoming edges and no outgoing edges  
+
+### Hunt's Algorithm
+
+### Splitting
+> a process of dividing a node into two or more sub-nodes.
+
+### Attributes
+> * **Binary** two outcomes - true or false, yes or no  
+> * **Nominal** named or labeled data *no order* - single, married, divorced  
+> * **Ordinal** named or labeled data *has order* - good, neutral, bad; hot, warm, cold  
+> * **Continuous** can be expressed as comparison with binary or ranged  
+
+### Measures for selecting best split
+> **node impurity** high degree is good  
+
+#### Measures of node impurity
+> * **Gini index** shows how pure a region is. How much of the data in a particular region belongs to a single class. Small is good.  
+> * **Entropy** similar to gini index. Between 0 and 1.  
+> * **Misclassification error**  

@@ -1,0 +1,174 @@
+---
+title: "Iris data exploration"
+author: "Erdenebayar Sh"
+output: html_document
+---
+
+```{r global_options, echo = FALSE, include = FALSE}
+options(width = 100)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,
+                      cache = FALSE, tidy = FALSE, fig.align = 'center',
+                      fig.width = 15)
+```
+
+
+### Used packages
+```{r} 
+library(tidyverse)      # for data manipulation
+library(ggplot2)        # data visualization
+library(gridExtra)      # graph grid
+library(purrr)          # loop
+```
+
+### Summary statistics
+```{r}
+head(iris)
+```
+
+### Max, min, median, mean, frequency
+```{r}
+summary(iris)
+```
+
+### Scatter plot
+```{r fig.height=15}
+plot(iris)
+```
+
+### Length, Width relation
+```{r}
+graph1 <- ggplot(iris, aes(Sepal.Width, Sepal.Length)) +
+    geom_point(aes(color = Sepal.Length)) + geom_smooth()
+graph2 <- ggplot(iris, aes(Petal.Width, Petal.Length)) +
+    geom_point(aes(color = Petal.Length)) + geom_smooth()
+
+grid.arrange(graph1, graph2, ncol=2)
+```
+
+### Length, Width relation grouped by Species
+```{r}
+ggplot(iris, aes(Sepal.Width, Sepal.Length)) +
+    geom_point(aes(color = Sepal.Length)) +
+    facet_wrap(iris$Species)
+
+ggplot(iris, aes(Petal.Width, Petal.Length)) +
+    geom_point(aes(color = Petal.Length)) +
+    facet_wrap(iris$Species)
+```
+
+### Boxplot - Outlier, mean, 25% 75% quantile
+```{r}
+boxplot1 <- iris %>% ggplot(aes(x = Sepal.Length, y = Sepal.Width, fill = Species)) +
+    geom_boxplot()
+boxplot2 <- iris %>% ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) +
+    geom_boxplot()
+
+grid.arrange(boxplot1, boxplot2, ncol=2)
+```
+
+```{r}
+# sepalLengthBin <- iris %>% ggplot(aes(Sepal.Length)) +
+#     geom_histogram(fill = "blue", color = "grey") +
+#     facet_grid(iris$Species)
+# 
+# sepalWidthBin  <- iris %>% ggplot(aes(Sepal.Width)) + 
+#     geom_histogram(fill = "blue", color = "grey") +
+#     facet_grid(iris$Species)
+# 
+# petalLengthBin <- iris %>% ggplot(aes(Petal.Length)) +
+#     geom_histogram(fill = "blue", color = "grey") +
+#     facet_grid(iris$Species)
+# 
+# petalWidthBin  <- iris %>% ggplot(aes(Petal.Width)) + 
+#     geom_histogram(fill = "blue", color = "grey") +
+#     facet_grid(iris$Species)
+# 
+# grid.arrange(sepalLengthBin, petalLengthBin, sepalWidthBin, petalWidthBin, ncol=2)
+```
+
+### Histogram - bin = 30
+```{r}
+histogram <- function(data, col) {
+    data %>% ggplot(aes_string(names(data)[col])) +
+        geom_histogram(fill = "blue", color = "grey") +
+        facet_wrap(iris$Species)
+}
+
+grid.arrange(histogram(iris,1), histogram(iris,2), histogram(iris,3), histogram(iris,4), ncol=2)
+
+```
+
+### Overall Boxplot
+```{r}
+boxplot(iris[1:4])
+```
+
+## Aggregation
+### Mean len, wid for species
+```{r}
+iris %>%
+    group_by(Species) %>%
+    summarise(
+        sepalLenmean = mean(Sepal.Length),
+        sepalWidmean = mean(Sepal.Width),
+        petalLenmean = mean(Petal.Length),
+        petalWidmean = mean(Petal.Width),
+    )
+```
+
+```{r}
+iris %>% summarise_all(mean)
+```
+
+### Converting continuous data to categorical data
+```
+low    <- x < 25th percentile
+medium <- 25th percentile < x < 75th percentile
+high   <- x > 75th percentile
+```
+
+```{r}
+categorical <- 
+    map(iris[1:4],
+        ~ cut(.,
+              breaks = c(-Inf, quantile(.)[[2]], quantile(.)[[4]], Inf),
+              label = c("low", "middle", "high")
+        )
+    ) %>%
+    as.data.frame() %>%
+    mutate(
+        Species = iris$Species
+    )
+
+summary(categorical)
+```
+
+```{r}
+categorical %>%
+    group_by(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width, Species) %>%
+    summarise(count = n()) %>%
+    head(20)
+```
+
+```{r fig.height=15}
+bar1 <- categorical %>% ggplot(aes(categorical$Sepal.Width)) +
+    geom_bar(aes(fill = categorical$Species)) +
+    facet_wrap(categorical$Species)
+
+bar2 <- categorical %>% ggplot(aes(categorical$Sepal.Length)) +
+    geom_bar(aes(fill = categorical$Species)) +
+    facet_wrap(categorical$Species)
+
+bar3 <- categorical %>% ggplot(aes(categorical$Petal.Width)) +
+    geom_bar(aes(fill = categorical$Species)) +
+    facet_wrap(categorical$Species)
+
+bar4 <- categorical %>% ggplot(aes(categorical$Petal.Length)) +
+    geom_bar(aes(fill = categorical$Species)) +
+    facet_wrap(categorical$Species)
+
+data_label <- geom_text(stat='count', aes(label=..count..), vjust=-1)
+
+grid.arrange(bar1 + data_label, bar2 + data_label, bar3 + data_label, bar4 + data_label, ncol = 1)
+
+```
